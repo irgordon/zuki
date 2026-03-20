@@ -1,13 +1,13 @@
 #!/usr/bin/env bash
 set -euo pipefail
-LC_ALL=C
-export LC_ALL
+export LC_ALL=C
 
 script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 repo_root="$(cd "${script_dir}/.." && pwd)"
 cd "${repo_root}"
 
 failures=0
+declare -A missing_file_reported=()
 
 required_checks=(
   "ARCH_RULES.md|No Ambient Authority"
@@ -23,15 +23,14 @@ required_checks=(
   "AGENTS.md|VERIFY.md"
 )
 
-checked_files=()
 for check in "${required_checks[@]}"; do
   file="${check%%|*}"
   marker="${check#*|}"
 
   if [[ ! -f "${file}" ]]; then
-    if [[ " ${checked_files[*]} " != *" ${file} "* ]]; then
+    if [[ -z "${missing_file_reported["${file}"]+x}" ]]; then
       echo "FAIL: missing required file '${file}'"
-      checked_files+=("${file}")
+      missing_file_reported["${file}"]=1
       failures=1
     fi
     continue
