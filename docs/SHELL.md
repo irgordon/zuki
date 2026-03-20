@@ -4,12 +4,14 @@
 **Authority:**
 
 * Subordinate to *SYSTEM.md*, *PROGRAMMING-MODEL.md*, and *RUNTIME-MODEL.md*
-* Coordinate with *IPC.md*, *CAPABILITIES.md*, *CSPACE.md*, and *SCHED.md*
+* Coordinates with *IPC.md*, *CAPABILITIES.md*, *CSPACE.md*, and *SCHED.md*
 * Superior, for interactive command semantics, to user-facing CLI tools and scripting environments
 
-**Scope:** Binding for all interactive shells, command interpreters, REPL environments, scripting runtimes, and CLI interfaces executing on Zuki.
+**Scope:**
+Binding for all interactive shells, command interpreters, REPL environments, scripting runtimes, and CLI interfaces executing on Zuki.
 
-**Purpose:** Defines the canonical interactive execution model: command invocation, capability handling, task management, structured pipelines, error behavior, and forbidden patterns.
+**Purpose:**
+Defines the canonical interactive execution model: command invocation, capability handling, task management, structured pipelines, error behavior, and forbidden patterns.
 
 If shell behavior and this document disagree, the shell is wrong.
 
@@ -30,7 +32,7 @@ The Zuki shell is:
 
 The shell is the primary interactive interface to the system authority graph.
 
-The shell is not:
+The shell is **not**:
 
 * a POSIX shell
 * a namespace-based command interpreter
@@ -39,7 +41,6 @@ The shell is not:
 * a privilege management mechanism
 
 The shell does not create authority.
-
 The shell operates only on authority already granted.
 
 ---
@@ -80,11 +81,17 @@ Commands must resolve through explicit authority.
 Valid command sources:
 
 * shell builtins
-* service command registries
+* services explicitly bound into the current execution context
 * explicitly referenced program capabilities
 * user-defined functions
 
 The shell must not search ambient directories for executables.
+
+Resolution must be:
+
+* deterministic
+* single-step
+* scope-bounded
 
 ---
 
@@ -149,8 +156,8 @@ Command execution must:
 
 * validate authority before invocation
 * resolve arguments deterministically
-* produce a single-resolution result
-* return explicit success or failure
+* verify capability validity at the earliest deterministic boundary
+* produce exactly one success or one failure result
 
 A command must not:
 
@@ -173,11 +180,32 @@ Exactly one result may win.
 
 ---
 
+## 3.4 Execution unit
+
+An execution unit is the smallest indivisible shell operation boundary.
+
+An execution unit may be:
+
+* a single command invocation
+* a pipeline
+* a script statement
+
+All resolution, validation, execution, and failure semantics apply to the execution unit as a whole.
+
+An execution unit must produce exactly one terminal result:
+
+* success
+* failure
+* timeout
+* abort
+
+No partial completion may be externally visible.
+
+---
+
 # 4. Shell state model
 
-The shell maintains explicit state components.
-
-Shell state is not authority unless it contains capability references.
+Shell state is explicit and non-authoritative unless it contains capability references.
 
 ---
 
@@ -199,7 +227,7 @@ State changes must be explicit.
 
 ## 4.2 Context handles
 
-The shell may maintain context handles representing:
+Context handles represent:
 
 * working directory capability
 * active service connection
@@ -207,7 +235,6 @@ The shell may maintain context handles representing:
 * default execution context
 
 Context handles are convenience references only.
-
 They do not grant authority.
 
 ---
@@ -240,6 +267,14 @@ The shell may:
 * derive capabilities with narrowed rights
 * delete capabilities explicitly
 
+Capability transfer must preserve generation integrity.
+
+A transferred capability must be validated before use in the receiving context.
+
+Capability validation must occur independently in each execution context.
+
+Validation in one context must not imply validity in another.
+
 The shell must not:
 
 * fabricate capabilities
@@ -257,7 +292,13 @@ A capability becomes invalid when:
 * the object is retired
 * the capability is explicitly destroyed
 
-The shell must propagate capability failures deterministically.
+Capability validity must be checked at:
+
+* resolution, or
+* authority validation, or
+* first use
+
+Failure timing must be deterministic.
 
 ---
 
@@ -293,6 +334,21 @@ The shell must support:
 * task cancellation
 * task waiting
 
+Task cancellation must produce a deterministic terminal state transition.
+
+A cancelled task must resolve as exactly one of:
+
+* aborted
+* failed
+
+Cancellation must not leave a task in:
+
+* running
+* blocked
+* indeterminate
+
+Task state after cancellation must be observable deterministically.
+
 Task operations must be explicit.
 
 ---
@@ -319,7 +375,7 @@ Pipelines connect command outputs to inputs.
 
 Pipelines operate on structured values.
 
-Example conceptual form:
+Conceptual form:
 
 ```
 list devices | filter class="net" | inspect
@@ -329,7 +385,22 @@ Pipelines must preserve:
 
 * deterministic ordering
 * explicit data flow
-* bounded resource usage
+* bounded buffering
+* deterministic backpressure
+
+Upstream blocking must be:
+
+* scheduler-visible
+* interruptible
+* bounded by explicit policy
+
+Upstream execution must:
+
+* block under scheduler control, or
+* fail deterministically
+
+No silent truncation.
+No implicit retry.
 
 ---
 
@@ -353,7 +424,15 @@ Pipelines must not:
 
 * create hidden authority
 * reorder operations nondeterministically
-* leak partial results after abort
+* expose externally visible partial results after abort
+
+Each pipeline stage must define its commit boundary explicitly.
+
+A pipeline must expose one externally visible completion boundary.
+
+Rollback behavior must be defined by each command contract.
+
+Implicit partial rollback is prohibited.
 
 ---
 
@@ -367,11 +446,10 @@ Command failures must return structured errors.
 
 Errors must include:
 
-* error code
-* failure reason
-* affected operation
-
-Errors must not rely on global state.
+* error_category
+* error_code
+* error_message
+* operation_context
 
 ---
 
@@ -426,11 +504,23 @@ Scripts must not:
 
 ## 9.3 Script restart behavior
 
-After restart:
+Each script operation must define a restart-safe completion boundary.
 
-* scripts must not duplicate authority
-* scripts must not complete operations twice
-* scripts must reject stale state
+If a restart occurs before that boundary:
+
+* the operation must be treated as failed
+
+If a restart occurs after that boundary:
+
+* the operation must not be re-executed automatically
+
+Replay without explicit instruction is prohibited.
+
+Scripts must not:
+
+* duplicate authority
+* complete operations twice
+* accept stale state
 
 ---
 
@@ -457,6 +547,12 @@ task.cancel
 exit
 ```
 
+Builtin commands possess no inherent authority.
+
+A builtin command may operate only on authority explicitly provided as input or present in the execution context.
+
+Builtin commands must obey the same capability validation rules as external programs.
+
 Additional builtins may be added without breaking compatibility.
 
 ---
@@ -472,7 +568,7 @@ The shell starts with:
 * a root capability space
 * an initial thread
 * a bounded capability set
-* an initial execution context
+* an explicitly defined initial execution context
 
 ---
 
@@ -561,7 +657,7 @@ Before merging any shell-related change:
 * are errors explicit and deterministic?
 * is authority explicit and capability-scoped?
 * are restart semantics safe?
-* are pipelines deterministic?
+* are pipelines deterministic and scheduler-safe?
 * are forbidden patterns absent?
 
 If any answer is no, unknown, or hand-waved, the change is invalid.
@@ -573,3 +669,5 @@ If any answer is no, unknown, or hand-waved, the change is invalid.
 This document is the ground truth for the Zuki shell interface.
 
 If shell behavior and this document disagree, the shell is wrong.
+
+---
