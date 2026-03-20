@@ -29,16 +29,19 @@ tokens=(
 )
 fixed_token_a=$'\x2f\x64\x65\x76\x2f\x75\x72\x61\x6e\x64\x6f\x6d'
 fixed_token_b=$'\x24\x52\x41\x4e\x44\x4f\x4d'
+token_urandom="${fixed_token_a}"
+token_random_var="${fixed_token_b}"
+token_boundary='(^|[^[:alnum:]_])'
 
 violations=0
 for file in "${files[@]}"; do
   [[ -f "${file}" ]] || continue
   for token in "${tokens[@]}"; do
-    if [[ "${token}" == "${fixed_token_a}" || "${token}" == "${fixed_token_b}" ]]; then
+    if [[ "${token}" == "${token_urandom}" || "${token}" == "${token_random_var}" ]]; then
       pattern="${token}"
       matcher=(-F)
     else
-      pattern="(^|[^[:alnum:]_])${token}($|[^[:alnum:]_])"
+      pattern="${token_boundary}${token}($|[^[:alnum:]_])"
       matcher=(-E)
     fi
 
