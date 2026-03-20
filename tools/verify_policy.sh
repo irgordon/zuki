@@ -1,7 +1,6 @@
 #!/usr/bin/env bash
 set -euo pipefail
-LC_ALL=C
-export LC_ALL
+export LC_ALL=C
 
 script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 repo_root="$(cd "${script_dir}/.." && pwd)"
@@ -19,7 +18,7 @@ banned_patterns=(
   "nohup"
 )
 
-violations=0
+found_violations=0
 
 while IFS= read -r file; do
   for pattern in "${banned_patterns[@]}"; do
@@ -27,7 +26,7 @@ while IFS= read -r file; do
       [[ -z "${match_line}" ]] && continue
       echo "FAIL: banned pattern '${pattern}' found in ${file}"
       echo "${match_line}"
-      violations=1
+      found_violations=1
     done < <(grep -nF -- "${pattern}" "${file}" || true)
   done
 done < <(
@@ -38,7 +37,7 @@ done < <(
     -type f -print | sort
 )
 
-if [[ "${violations}" -ne 0 ]]; then
+if [[ "${found_violations}" -ne 0 ]]; then
   exit 1
 fi
 
