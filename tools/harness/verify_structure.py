@@ -8,6 +8,7 @@ from common import Violation, emit_failures, emit_ok, is_executable, main_guard,
 STAGE = "verify_structure"
 
 REQUIRED_FILES = [
+    "CHANGELOG.md",
     "ARCH_RULES.md",
     "TASK_TEMPLATE.md",
     "VERIFY.md",

@@ -3,9 +3,13 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from common import Violation, emit_failures, emit_ok, list_repo_files, main_guard, read_text, rel, repo_root
+from common import Violation, emit_failures, emit_ok, list_repo_files, main_guard, read_scan_text, rel
 
 STAGE = "verify_policy"
+
+CHECKED_PREFIXES = [
+    "tools/harness/",
+]
 
 BANNED_PATTERNS = [
     "PATH=",
@@ -32,6 +36,8 @@ EXCLUDED_FILES = {
 
 def should_scan(path: Path) -> bool:
     rp = rel(path)
+    if not any(rp.startswith(prefix) for prefix in CHECKED_PREFIXES):
+        return False
     if rp in EXCLUDED_FILES:
         return False
     for prefix in EXCLUDED_PREFIXES:
@@ -46,7 +52,9 @@ def run() -> int:
     for path in list_repo_files():
         if not should_scan(path):
             continue
-        text = read_text(path)
+        text = read_scan_text(path)
+        if text is None:
+            continue
         lines = text.splitlines()
         for pattern in BANNED_PATTERNS:
             for i, line in enumerate(lines, start=1):

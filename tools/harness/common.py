@@ -6,7 +6,7 @@ import os
 import sys
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Iterable, List
+from typing import Iterable, List, Optional
 
 
 @dataclass(frozen=True)
@@ -57,13 +57,57 @@ def list_repo_files() -> List[Path]:
         parts = p.relative_to(root).parts
         if parts and parts[0] == ".git":
             continue
+        if "__pycache__" in parts:
+            continue
         files.append(p)
     files.sort(key=lambda p: rel(p))
     return files
 
 
+TEXT_SCAN_SUFFIXES = {
+    ".md",
+    ".py",
+    ".sh",
+    ".txt",
+    ".yaml",
+    ".yml",
+}
+
+TEXT_SCAN_NAMES = {
+    ".gitignore",
+    "LICENSE",
+    "Makefile",
+}
+
+TEXT_SCAN_PATHS = {
+    "docs/SHELL-V0-AST",
+}
+
+
+def is_text_scan_candidate(path: Path) -> bool:
+    rp = rel(path)
+    if rp in TEXT_SCAN_PATHS:
+        return True
+    if path.name in TEXT_SCAN_NAMES:
+        return True
+    return path.suffix in TEXT_SCAN_SUFFIXES
+
+
 def read_text(path: Path) -> str:
     return path.read_text(encoding="utf-8")
+
+
+def read_text_if_utf8(path: Path) -> Optional[str]:
+    try:
+        return read_text(path)
+    except UnicodeDecodeError:
+        return None
+
+
+def read_scan_text(path: Path) -> Optional[str]:
+    if not is_text_scan_candidate(path):
+        return None
+    return read_text_if_utf8(path)
 
 
 def is_executable(path: Path) -> bool:

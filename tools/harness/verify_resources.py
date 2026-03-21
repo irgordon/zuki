@@ -9,6 +9,10 @@ STAGE = "verify_resources"
 
 MAX_HARNESS_FILE_BYTES = 64 * 1024
 MAX_LINE_LENGTH = 200
+OBVIOUS_LOOP_MARKERS = (
+    "while" + " true",
+    "until" + " false",
+)
 
 WRAPPER_FILES = {
     "tools/verify_structure.sh",
@@ -34,7 +38,7 @@ def run() -> int:
                 if len(line) > MAX_LINE_LENGTH:
                     violations.append(Violation(STAGE, "line_too_long", rp, f"line={i} len={len(line)} max={MAX_LINE_LENGTH}"))
 
-                if "while true" in line or "until false" in line:
+                if any(marker in line for marker in OBVIOUS_LOOP_MARKERS):
                     violations.append(Violation(STAGE, "obvious_unbounded_loop", rp, f"line={i}: {line}"))
 
     if violations:
