@@ -6,6 +6,17 @@ from common import Violation, emit_failures, emit_ok, main_guard, read_text, rep
 STAGE = "verify_schema"
 
 REQUIRED_MARKERS = {
+    "CHANGELOG.md": [
+        "## [v0.0.0]",
+        "### Added",
+        "### Changed",
+        "### Fixed",
+        "### Removed",
+        "### Security",
+        "Semantic Versioning",
+        "Version numbers must not be incremented without explicit instruction.",
+        "All entries remain under v0.0.0 until authorized.",
+    ],
     "ARCH_RULES.md": [
         "No Ambient Authority",
         "Deterministic Boundary Behavior",
