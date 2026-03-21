@@ -7,6 +7,7 @@ REPO_ROOT = Path(__file__).resolve().parents[2]
 SOURCE_DIR = REPO_ROOT / "kernel" / "src"
 
 EXPECTED_SOURCE_FILES = (
+    "kernel_assert.c",
     "kernel_contract_placeholders.c",
     "kernel_entry.c",
     "kernel_halt.c",
@@ -59,6 +60,7 @@ class KernelSourceTests(unittest.TestCase):
                 self.assertTrue(all(
                     line.startswith("#include")
                     or line.startswith("_Static_assert")
+                    or line == "__attribute__((noreturn)) void kernel_assert(kernel_fault_reason_t reason) {"
                     or line == "kernel_status_t kernel_entry(void) {"
                     or line == "__attribute__((noreturn)) void kernel_halt(kernel_status_t reason) {"
                     or line == "kernel_lifecycle_state_t kernel_lifecycle_get_state(void) {"

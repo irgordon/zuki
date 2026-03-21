@@ -8,6 +8,7 @@ REPO_ROOT = Path(__file__).resolve().parents[2]
 INCLUDE_DIR = REPO_ROOT / "kernel" / "include"
 
 EXPECTED_HEADER_FILES = (
+    "kernel_assert.h",
     "kernel_entry.h",
     "kernel_fault_reason.h",
     "kernel_halt.h",
@@ -96,6 +97,12 @@ class KernelHeaderTests(unittest.TestCase):
         text = self.read_header("kernel_halt.h")
         self.assertIn('#include "kernel_status.h"', text)
         self.assertEqual(text.count("__attribute__((noreturn)) void kernel_halt(kernel_status_t reason);"), 1)
+
+    def test_assert_contract_is_declared_as_singular_noreturn_surface(self) -> None:
+        text = self.read_header("kernel_assert.h")
+        self.assertIn('#include "kernel_fault_reason.h"', text)
+        self.assertEqual(text.count("__attribute__((noreturn)) void kernel_assert(kernel_fault_reason_t reason);"), 1)
+        self.assertNotIn("kernel_assert_fail", text)
 
     def read_header(self, header_name: str) -> str:
         return (INCLUDE_DIR / header_name).read_text(encoding="utf-8")
