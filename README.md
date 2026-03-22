@@ -1,11 +1,10 @@
-# Zuki — A Clear, Open, Capability‑Driven Operating System
+# ZUKI — Clear and Dependable
 
-Zuki is a modern operating system for people who care how things work.  
-A clear, open, capability‑driven OS that puts authority back in the hands of the user, not the system.
+ZUKI is a modern operating system designed to feel solid, understandable, and thoughtfully built.
 
----
+Instead of chasing complexity or quick fixes, ZUKI focuses on clarity, stability, and long‑term reliability. Every part of the system is shaped with the goal of being predictable, maintainable, and trustworthy.
 
-## Badges
+ZUKI grows slowly and intentionally. Each change is reviewed, documented, and added with care. The project values steady progress, thoughtful design, and transparency in how the system evolves.
 
 ![C](https://img.shields.io/badge/language-C-blue)
 ![Rust](https://img.shields.io/badge/language-Rust-orange)
@@ -14,20 +13,30 @@ A clear, open, capability‑driven OS that puts authority back in the hands of t
 
 ---
 
-## What is Zuki?
+## What makes ZUKI different
 
-Zuki is a capability‑rooted, deterministic operating system designed for people who want clarity instead of complexity.  
-No ambient privilege. No hidden magic. No legacy baggage.  
-Just a precise, principled kernel and a transparent userspace built on explicit authority.
+ZUKI is guided by a few simple ideas:
+
+- Build things carefully and deliberately  
+- Keep the system easy to understand, even years later  
+- Make behavior predictable, not surprising  
+- Choose reliability over rushing features  
+- Record decisions so the project stays consistent as it grows  
+
+These principles help ZUKI stay strong as it expands—without becoming fragile, confusing, or weighed down by hidden complexity.
 
 ---
 
-## Core Principles
+## Project philosophy
 
-- **Capability‑rooted authority** — every action is explicit, inspectable, and bounded  
-- **Deterministic behavior** — no hidden state, no ambient privilege, no surprises  
-- **Open and clear** — architecture, invariants, and mechanisms are documented and auditable  
-- **Free by intent** — built for enthusiasts, researchers, and anyone who values transparent computing  
+ZUKI is not built to chase trends.  
+It is built to last.
+
+The project emphasizes:
+
+- clarity over cleverness  
+- consistency over improvisation  
+- steady progress over rushed delivery  
 
 ---
 
