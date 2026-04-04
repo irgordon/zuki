@@ -1,0 +1,5 @@
+from __future__ import annotations
+
+MAX_IDENTIFIER_LENGTH = 1024
+MAX_STRING_LENGTH = 65536
+MAX_INTEGER_DIGITS = 128

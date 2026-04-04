@@ -16,6 +16,9 @@ from .tokens import NullLiteralToken
 from .tokens import PipeToken
 from .tokens import RightBraceToken
 from .tokens import RightBracketToken
+from .limits import MAX_IDENTIFIER_LENGTH
+from .limits import MAX_INTEGER_DIGITS
+from .limits import MAX_STRING_LENGTH
 from .tokens import StringLiteralToken
 from .tokens import Token
 
@@ -115,6 +118,8 @@ def scan_string_literal(source: str, start: int) -> tuple[StringLiteralToken, in
     decoded: list[str] = []
 
     while cursor < limit:
+        if (cursor - start) > MAX_STRING_LENGTH:
+            raise LexError(start, "string literal too long")
         ch = source[cursor]
         if ch == '"':
             raw_text = source[start:cursor + 1]
@@ -140,6 +145,8 @@ def scan_integer_literal(source: str, start: int) -> tuple[IntegerLiteralToken, 
     limit = len(source)
     while cursor < limit and source[cursor].isdecimal():
         cursor += 1
+        if (cursor - start) > MAX_INTEGER_DIGITS:
+            raise LexError(start, "integer literal too long")
 
     if cursor < limit and is_identifier_continue(source[cursor]):
         raise LexError(cursor, "invalid decimal literal boundary")
@@ -152,6 +159,8 @@ def scan_identifier_like(source: str, start: int) -> tuple[Token, int]:
     limit = len(source)
     while cursor < limit and is_identifier_continue(source[cursor]):
         cursor += 1
+        if (cursor - start) > MAX_IDENTIFIER_LENGTH:
+            raise LexError(start, "identifier too long")
 
     text = source[start:cursor]
 
