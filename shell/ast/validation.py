@@ -17,6 +17,10 @@ from .nodes import PositionalArg
 from .nodes import Program
 from .nodes import RecordExpr
 from .nodes import RecordField
+from shell.lexer.limits import MAX_IDENTIFIER_LENGTH
+from shell.lexer.limits import MAX_INTEGER_DIGITS
+from shell.lexer.limits import MAX_STRING_LENGTH
+
 from .nodes import StringLiteral
 
 
@@ -116,7 +120,15 @@ def validate_expression(expr: object, path: str) -> None:
     if isinstance(expr, RecordField):
         validate_record_field(expr, path)
         return
-    if isinstance(expr, (StringLiteral, IntLiteral, BoolLiteral)):
+    if isinstance(expr, StringLiteral):
+        if len(expr.value) > MAX_STRING_LENGTH:
+            raise ASTValidationError("InvalidStringLiteral", path, f"string exceeds maximum length of {MAX_STRING_LENGTH}")
+        return
+    if isinstance(expr, IntLiteral):
+        if len(str(expr.value)) > MAX_INTEGER_DIGITS:
+            raise ASTValidationError("InvalidIntLiteral", path, f"integer exceeds maximum digits of {MAX_INTEGER_DIGITS}")
+        return
+    if isinstance(expr, BoolLiteral):
         return
     if isinstance(expr, NullLiteral):
         validate_null_literal(expr, path)
@@ -136,6 +148,8 @@ def validate_identifier(identifier: object, path: str) -> None:
         raise ASTValidationError("InvalidIdentifier", path, "expected Identifier node")
     if not isinstance(identifier.text, str) or identifier.text == "":
         raise ASTValidationError("InvalidIdentifier", f"{path}.text", "identifier text must be a non-empty string")
+    if len(identifier.text) > MAX_IDENTIFIER_LENGTH:
+        raise ASTValidationError("InvalidIdentifier", f"{path}.text", f"identifier exceeds maximum length of {MAX_IDENTIFIER_LENGTH}")
 
 
 def validate_null_literal(null_literal: NullLiteral, path: str) -> None:
